@@ -1,8 +1,5 @@
-from bottle import debug, get, post, request, response, route, run, template
+import bottle
 import sys
-
-
-debug(True)  # TODO: !!!Turn off before production use!!!
 
 
 TESTS = [{'name': 'TEST 1',
@@ -19,7 +16,7 @@ TESTS = [{'name': 'TEST 1',
 ITEM_TEMPLATE = '''
         <h1>{{testname}}</h1><br>
 
-        <form action="/fb" method="post">
+        <form action="/" method="post">
             {{itemtext}} <br><br>
 
             <input type="radio" name="itemscore" value="0" /> {{choice1}} <br>
@@ -35,15 +32,15 @@ item_number = 0
 test_number = 0
 
 
-@get('/fb')
+@bottle.get('/')
 def show_item():
     global item_number, test_number
 
-    item_template = template(ITEM_TEMPLATE, testname=TESTS[test_number]['name'],
-                                            itemtext=TESTS[test_number]['items'][item_number],
-                                            choice1=TESTS[test_number]['choices'][0],
-                                            choice2=TESTS[test_number]['choices'][1],
-                                            choice3=TESTS[test_number]['choices'][2])
+    item_template = bottle.template(ITEM_TEMPLATE, testname=TESTS[test_number]['name'],
+                                                   itemtext=TESTS[test_number]['items'][item_number],
+                                                   choice1=TESTS[test_number]['choices'][0],
+                                                   choice2=TESTS[test_number]['choices'][1],
+                                                   choice3=TESTS[test_number]['choices'][2])
 
     last_item = len(TESTS[test_number]['items']) - 1
     last_test = len(TESTS) - 1
@@ -60,4 +57,17 @@ def show_item():
     return item_template
 
 
-run(host='localhost', port=8080, reloader=True)
+@bottle.post('/')
+def process_item():
+    global item_number, test_number
+
+    item_score = bottle.request.forms.get('itemscore')
+    print(item_score)
+    print('{test} {item} score: {score}'.format(test=TESTS[test_number]['name'],
+                                                item=TESTS[test_number]['items'][item_number],
+                                                score=str(item_score)))
+    return
+
+if __name__ == '__main__':
+    bottle.debug(True)
+    bottle.run(host='localhost', port=8080, reloader=True)
